@@ -13,7 +13,11 @@ from torchvision import utils
 
 def save_example_images(bayer, pred, target, name, save_dir='examples'):
     os.makedirs(save_dir, exist_ok=True)
-    bayer_rgb = bayer.repeat(1, 3, 1, 1)
+    bayer_rgb = torch.zeros_like(bayer).repeat(1, 3, 1, 1)
+    bayer_rgb[:, 0, ::2, ::2] = bayer[:, 0, ::2, ::2]
+    bayer_rgb[:, 1, ::2, 1::2] = bayer[:, 0, ::2, 1::2]
+    bayer_rgb[:, 1, 1::2, ::2] = bayer[:, 0, 1::2, ::2]
+    bayer_rgb[:, 2, 1::2, 1::2] = bayer[:, 0, 1::2, 1::2]
     bayer_rgb = torch.clamp(bayer_rgb, 0, 1)
     pred = torch.clamp(pred, 0, 1)
     target = torch.clamp(target, 0, 1)
@@ -37,14 +41,14 @@ def eval_model(val_dataloader, model, loss_fn, name, example_save_dir):
         for val_bayer, val_target in val_dataloader:
             val_bayer = val_bayer.to(DEVICE)
             val_target = val_target.to(DEVICE)
-            if model.gamma2:
+            if hasattr(model, 'gamma2') and model.gamma2:
                 val_target = torch.sqrt_(val_target)
             val_pred = model.forward(val_bayer)
 
             v_loss = loss_fn(val_pred, val_target)
             val_loss += v_loss.item()
             val_batches += 1
-            if model.gamma2:
+            if hasattr(model, 'gamma2') and model.gamma2:
                 val_target = torch.square_(val_target)
                 val_pred = torch.square_(val_pred)
             save_example_images(val_bayer, val_pred, val_target, name, save_dir=example_save_dir)
@@ -56,7 +60,7 @@ def eval(name):
     model = DemosaicModel().to(DEVICE)
     model.load_state_dict(torch.load('model.pth', map_location=DEVICE))
 
-    val_dataset = DemosaicDataset(root_dir=os.path.join('D:', name), len_factor=1, transform=v2.CenterCrop((512, 512)))
+    val_dataset = DemosaicDataset(root_dir=os.path.join('D:', name), len_factor=1, crop_transform=v2.CenterCrop((512, 512)))
     val_dataloader = DataLoader(val_dataset, batch_size=len(val_dataset), shuffle=False, num_workers=4, pin_memory=False)
 
     bilinear_model = BilinearModel().to(DEVICE)
