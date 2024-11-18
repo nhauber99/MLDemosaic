@@ -1,8 +1,8 @@
 # MLDemosaic
 (work in progress)
 
-Python code for training, evaluating and running a machine learning based demosaicing model.
-The concept behind the model architecture is to assume a fixed bayer pattern, use PixelUnshuffle to transform the values of each bayer patch into 4 channels at the same position, thus halfing the width. The resulting tensor is the input to 3 Residual-in-Residual Dense Blocks (from the [ESRGAN paper](https://arxiv.org/pdf/1809.00219)). A pixel shuffle operation upscales the image again followed by a convolution. This network should only predict the residual of the result obtained by bilinear interpolation.
+Python code for training, evaluating and running a light-weight machine learning based demosaicing model.
+The concept behind the model architecture is to assume a fixed bayer pattern, use PixelUnshuffle to transform the values of each bayer patch into 4 channels at the same position, thus halfing the width and height. The resulting tensor is the input to 3 Residual-in-Residual Dense Blocks (from the [ESRGAN paper](https://arxiv.org/pdf/1809.00219)). A pixel shuffle operation upscales the image again followed by a convolution. This network should only predict the residual of the result obtained by bilinear interpolation.
 
 ![image](https://github.com/user-attachments/assets/dfe44193-daa5-4877-894a-81fc5987c92c)
 
